@@ -1,0 +1,81 @@
+# Metadata
+wandb:
+  entity: "cfos3120-acfr-usyd"
+  project: "Vortex_p2p"
+  group: "peak2peak"
+  sweep_n: 32
+
+peripheral:
+  device: [0,1,2,3]
+  seed: 42
+  save_model: True
+  
+# parameters will get updated with sweeps
+parameters:
+  
+  # Net Parameters
+  n_experts: 2
+  n_head: 1
+  n_layers: 3
+  n_hidden: 32
+  attn_dropout: 0.5
+  attn_type: flash
+
+  # Training Parameters
+  optimizer: adam
+  scheduler: cycle
+  epochs: 200
+  learning_rate: 0.001
+  scheduler_step_size: 100
+  batch_size: 4
+  init_lr: 0.001
+
+  # Physics Informed
+  PINN: True
+  pressure_correction: False
+  ic_lineage: True
+  bc_loss: False
+  loss_function: LPloss
+  dyn_loss_balancing: True
+
+  # Cycle Learning rate args
+  div_factor: 20
+  pct_start: 0.05
+  final_div_factor: 1000
+
+  # Validation Metric
+  metrics_list: []
+
+dataset_params:
+
+  # Dataset dependent Net configs
+  input_dim: 3
+  branch_sizes: [4] # this needs to be n_channels x input_d (e.g. 4 channels, U,V,P,T) x (2 time_steps)
+  space_dims: 2
+  output_dim: 3
+
+  # Dataset Partition
+  name: Vortex_2D_v2 #corresponds to dataloader
+  dir: /home/n.foster@acfr.usyd.edu.au/openfoam_cases/vortex_shedding/c5_new/collated_results
+  dataset_args:
+
+    Re_range: [125,150] #[120,150]  # either list or single value or None
+    seq_start: 0 # These need to aline up with the model dims
+    seq_end: -1
+    reduced_resolution_t: 1
+    data_split: 0.50
+    cell_sample_density: 1.0
+
+    # sliding window:
+    methods: ['phase2phase'] # see configs for options 'phase2phase''peak2peak'
+    in_dim : 5
+    out_dim : 5
+    dt_size: 20
+
+  # Adjustments (not implemented yet)
+  normalize_x: True
+  normalize_xi: True
+  normalize_y: True
+  x_normalizer_type: 'unit'
+  xi_normalizer_type: 'unit'
+  y_normalizer_type: 'unit'

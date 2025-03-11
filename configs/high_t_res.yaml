@@ -1,0 +1,69 @@
+# Metadata
+wandb:
+  entity: "cfos3120-acfr-usyd"
+  project: "Geneva_Vortex_2D_1t_out"
+  sweep_n: 20
+
+peripheral:
+  device: [0]
+  seed: 42
+  time_stamp:
+  model_name:
+  
+  
+# parameters will get updated with sweeps
+parameters:
+  
+  # Net Parameters
+  n_experts: 2
+  n_head: 1
+  n_layers: 3
+  n_hidden: 32
+  attn_dropout: 0.0
+  attn_type: flash
+
+  # Training Parameters
+  optimizer: adam
+  scheduler: cycle
+  epochs: 500
+  learning_rate: 0.001
+  scheduler_step_size: 100
+  batch_size: 4
+  init_lr: 0.001
+  loss_function: LPloss
+
+  # Cycle Learning rate args
+  div_factor: 20
+  pct_start: 0.05
+  final_div_factor: 1000
+
+  # Validation Metric
+  metrics_list: []
+
+dataset_params:
+
+  # Inputs
+  input_dim: 2
+  branch_sizes: [4] # this needs to be n_channels x input_d (e.g. 4 channels, U,V,P,T) x (2 time_steps)
+  space_dims: 2
+
+  # Outputs
+  output_dim: 3
+
+  # Dataset Partition
+  name: Vortex_2D #corresponds to dataloader
+  dir: /home/n.foster@acfr.usyd.edu.au/openfoam_cases/vortex_shedding/c6_re_150/collated_results
+  dataset_args:
+    seq_start: 0 # These need to aline up with the model dims
+    seq_end: -1
+    reduced_resolution_t: 1
+    data_split: 0.75
+    cell_sample_density: 1.0
+
+  # Adjustments
+  normalize_x: True
+  normalize_xi: True
+  normalize_y: True
+  x_normalizer_type: 'unit'
+  xi_normalizer_type: 'unit'
+  y_normalizer_type: 'unit'

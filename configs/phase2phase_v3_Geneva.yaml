@@ -1,0 +1,97 @@
+# Metadata
+wandb:
+  entity: "cfos3120-acfr-usyd"
+  project: "Vortex_p2p_v2"
+  group: "new_geneva_arch"
+  sweep_n: 27
+
+peripheral:
+  device: [0]
+  seed: 42
+  save_model: True
+  
+# parameters will get updated with sweeps
+parameters:
+  
+  # Net Parameters
+  model_name: 'Geneva'
+  n_experts: 1
+  n_head: 2
+  n_layers: 3
+  n_hidden: 32
+  attn_dropout: 0.3
+  attn_type: flash
+
+  # RNN and Rollout
+  in_timesteps: 5
+  rollout_steps: 5
+  rnn_input_i: 0 # index of input functions with timesteps
+
+  # Training Parameters
+  optimizer: adam
+  scheduler: step
+  epochs: 200
+  learning_rate: 0.005
+  batch_size: 4
+
+  # Physics Informed
+  PINN: True
+  monitor_ns_only: True
+  pressure_correction: False
+  ic_lineage: True
+  bc_loss: False
+  loss_function: LPloss
+  dyn_loss_balancing: False
+  loss_weights: True
+  
+  # For fixed weights, order = supervised, mom-x, mom-y, cont, IC, boundary
+  loss_list: ['l0','l1','l2','l3','l4','l5'] # for reference
+  l0: 1
+  l1: 1
+
+  # Cycle Learning rate args
+  init_lr: 0.001
+  div_factor: 20
+  pct_start: 0.05
+  final_div_factor: 1000
+
+  # Step Learning rate args
+  gamma: 0.1
+  scheduler_step_size: 100
+
+  # Validation Metric
+  metrics_list: []
+
+dataset_params:
+
+  # Dataset dependent Net configs
+  input_dim: 3
+  branch_sizes: [4] # this needs to be n_channels x input_d (e.g. 4 channels, U,V,P,T) x (2 time_steps)
+  space_dims: 2
+  output_dim: 3
+
+  # Dataset Partition
+  name: Vortex_2D_v2 #corresponds to dataloader
+  dir: /home/n.foster@acfr.usyd.edu.au/openfoam_cases/vortex_shedding/c5_new/collated_results
+  dataset_args:
+
+    Re_range: [125,150] #[120,150]  # either list or single value or None
+    seq_start: 0 # These need to aline up with the model dims
+    seq_end: -1
+    reduced_resolution_t: 1
+    data_split: 0.50
+    cell_sample_density: 0.6
+
+    # sliding window:
+    methods: ['phase2phase'] # see configs for options 'phase2phase''peak2peak'
+    in_dim : 5
+    out_dim : 5
+    dt_size: 20
+
+  # Adjustments (not implemented yet)
+  normalize_x: True
+  normalize_xi: True
+  normalize_y: True
+  x_normalizer_type: 'unit'
+  xi_normalizer_type: 'unit'
+  y_normalizer_type: 'unit'

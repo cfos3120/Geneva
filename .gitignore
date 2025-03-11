@@ -169,3 +169,11 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
+
+# Additional for Geneva
+wandb/
+log/
+data/
+results/
+testing_scripts/
+sweeps/
