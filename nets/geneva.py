@@ -77,7 +77,8 @@ class rollout_RNN(nn.Module):
         hn = None
         for i in range(x.shape[1]):
             output, hn = self.rnn(x[:,i,:,:], hn)
-        x = output
+            hn = self.act(hn)
+        x = self.act(output)
         return x
 
 class MoEGPTConfig():
@@ -121,11 +122,6 @@ class FlashAttention(nn.Module):
         if self.cross:
             self.keys = nn.ModuleList([nn.Linear(config.n_embd, config.n_embd) for _ in range(config.n_inputs)])
             self.values = nn.ModuleList([nn.Linear(config.n_embd, config.n_embd) for _ in range(config.n_inputs)])
-
-            # override for index of input_f that is a timeseries
-            if rnn_input_i is not None:
-                self.keys[rnn_input_i] = rollout_RNN(config.n_embd, config.n_embd)
-                self.values[rnn_input_i] = rollout_RNN(config.n_embd, config.n_embd)
 
         else:
             self.keys = nn.Linear(config.n_embd, config.n_embd)
@@ -298,11 +294,14 @@ class GenevaNOT(nn.Module):
         self.trunk_mlp = MLP(self.trunk_size, n_hidden, n_hidden, n_layers=mlp_layers,act=act)
         self.branch_mlps = nn.ModuleList([MLP(bsize, n_hidden, n_hidden, n_layers=mlp_layers,act=act) for bsize in self.branch_sizes])
 
+        # override for index of input_f that is a timeseries
+        if rnn_input_i is not None:
+            self.branch_mlps[rnn_input_i] = rollout_RNN(self.branch_sizes[rnn_input_i], n_hidden)
+
         self.blocks = nn.Sequential(*[MIOECrossAttentionBlock(self.gpt_config) for _ in range(self.gpt_config.n_layer)])
 
         self.out_mlp = MLP(n_hidden, n_hidden, output_size, n_layers=mlp_layers)
         
-
         # For Decoder and Propagator
         self.rollout_steps = rollout_steps
         self.out_step = 1 #(only 1 timestep at a time for timebatched rollout)
